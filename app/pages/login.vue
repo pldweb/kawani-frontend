@@ -22,7 +22,7 @@ const { defineField, errors, handleSubmit } = useForm({
     password: z.string().min(1, 'Password wajib diisi.')
   })),
   initialValues: {
-    email: 'admin@kawani.test',
+    email: 'superadmin@kawani.test',
     password: 'password'
   }
 })
@@ -44,11 +44,17 @@ const onSubmit = handleSubmit(async (values) => {
     await navigateTo('/dashboard')
   } catch (error) {
     if (error instanceof AxiosError) {
-      serverError.value = (error.response?.data as ApiErrorEnvelope | undefined)?.message || 'Login gagal.'
+      if (error.response?.status === 422) {
+        serverError.value = 'Kombinasi email dan password tidak sesuai, atau format salah.'
+      } else if (error.response?.status === 401) {
+        serverError.value = 'Email atau password yang Anda masukkan salah.'
+      } else {
+        serverError.value = (error.response?.data as ApiErrorEnvelope | undefined)?.message || 'Terjadi kendala saat memproses login. Silakan coba lagi.'
+      }
       return
     }
 
-    serverError.value = 'Login gagal.'
+    serverError.value = 'Gagal terhubung ke server. Silakan periksa koneksi internet Anda.'
   }
 })
 </script>
@@ -126,7 +132,7 @@ const onSubmit = handleSubmit(async (values) => {
                   v-model="email"
                   type="email"
                   autocomplete="email"
-                  placeholder="admin@kawani.test"
+                  placeholder="superadmin@kawani.test"
                   :error="Boolean(errors.email)"
                 >
                   <template #leftIcon>
@@ -171,7 +177,7 @@ const onSubmit = handleSubmit(async (values) => {
                   <CheckCircle2 class="h-4 w-4 text-[#10b981]" />
                   Admin default
                 </span>
-                <span class="text-[#6680a7]">admin@kawani.test</span>
+                <span class="text-[#6680a7]">superadmin@kawani.test</span>
               </div>
 
               <div v-if="serverError" class="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -183,21 +189,6 @@ const onSubmit = handleSubmit(async (values) => {
               </UiAppButton>
             </div>
           </form>
-
-          <div class="mt-6 grid grid-cols-3 gap-3">
-            <div class="rounded-xl border border-[#d9e6f5] bg-white p-4 text-center shadow-sm">
-              <Users class="mx-auto h-5 w-5 text-[#0b63f6]" />
-              <p class="mt-2 text-xs font-semibold text-[#6680a7]">Employee</p>
-            </div>
-            <div class="rounded-xl border border-[#d9e6f5] bg-white p-4 text-center shadow-sm">
-              <LockKeyhole class="mx-auto h-5 w-5 text-[#0b63f6]" />
-              <p class="mt-2 text-xs font-semibold text-[#6680a7]">Secure API</p>
-            </div>
-            <div class="rounded-xl border border-[#d9e6f5] bg-white p-4 text-center shadow-sm">
-              <ShieldCheck class="mx-auto h-5 w-5 text-[#0b63f6]" />
-              <p class="mt-2 text-xs font-semibold text-[#6680a7]">RBAC</p>
-            </div>
-          </div>
         </div>
       </div>
     </div>
